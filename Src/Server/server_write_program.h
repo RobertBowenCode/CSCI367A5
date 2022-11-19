@@ -1,8 +1,7 @@
-#ifndef SERVER_PROGRAM   
-#define SERVER_PROGRAM
+#ifndef SERVER_WRITE_PROGRAM   
+#define SERVER_WRITE_PROGRAM
 
 int runMessageServer(); 
-int checkClientResponseYN(char* response); 
 int writeMessageTofile(char* message, char* client_ip); 
 
 
