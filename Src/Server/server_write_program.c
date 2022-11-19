@@ -76,7 +76,7 @@ int runMessageServer()
           printf("Waiting for relay server connection...\n");
           socklen_t sock_len = sizeof(struct sockaddr_in);
           int clientFd = accept(serverFd, (struct sockaddr *)&client, &sock_len); //accept the clients connection
-
+          printf("%d \n", clientFd); 
           char *client_ip = inet_ntoa(client.sin_addr);
 
           printf("Accepted connection: %s:%d\n", client_ip, ntohs(client.sin_port)); //client ip 

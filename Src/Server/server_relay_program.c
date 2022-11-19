@@ -52,17 +52,12 @@ int runMessageServer()
 
   //set up Socket Structure for write server
   struct sockaddr_in write_server;
-  int file_desc = socket(AF_INET, SOCK_STREAM, 0); //server pipeline
 
-  write_server.sin_family = AF_INET;
-  write_server.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
-  write_server.sin_port = htons(SERVER_WRITE_PORT);
-
-  char *server_ip = inet_ntoa(write_server.sin_addr);
+  //char *server_ip = inet_ntoa(write_server.sin_addr);
 
   //connect to the write server
   //printf("Connecting to: %s:%d\n", server_ip, ntohs(write_server.sin_port));
-  int result = connect(file_desc, (struct sockaddr *)&write_server, sizeof(struct sockaddr_in)); 
+ 
   int byte_count;
 
 
@@ -83,7 +78,14 @@ int runMessageServer()
   bind(serverFd, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
   listen(serverFd, 100); 
  
- 
+
+
+  
+
+
+
+
+
   //accept clients
   while(TRUE)
   {
@@ -92,7 +94,7 @@ int runMessageServer()
     printf("Waiting for client connection...\n");
     socklen_t sock_len = sizeof(struct sockaddr_in);
     int clientFd = accept(serverFd, (struct sockaddr *)&client, &sock_len); //accept the clients connection
-
+    int file_desc; 
     char *client_ip = inet_ntoa(client.sin_addr);
 
     printf("Accepted connection: %s:%d\n", client_ip, ntohs(client.sin_port)); //client ip 
@@ -100,7 +102,11 @@ int runMessageServer()
 
         while (TRUE) //start write loop
         {
+           file_desc = socket(AF_INET, SOCK_STREAM, 0); //server pipeline
 
+            write_server.sin_family = AF_INET;
+            write_server.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
+            write_server.sin_port = htons(SERVER_WRITE_PORT);
           memset(buffer, 0, sizeof(buffer));
 
           //prompt the user if they want to write
@@ -115,8 +121,11 @@ int runMessageServer()
 
           if(!response) //if response is 'n'
           { //break out of loop and return the results
-            close(file_desc);
             break; 
+          }
+          else{
+             while(connect(file_desc, (struct sockaddr *)&write_server, sizeof(struct sockaddr_in)) == -1){ printf("trying to connect \n"); }
+
           }
 
           //Acknowledge the clients response
@@ -129,14 +138,14 @@ int runMessageServer()
           printf("Client message received: %s\n", buffer); 
 
           //write the message to the data storage server
-          int result = connect(file_desc, (struct sockaddr *)&write_server, sizeof(struct sockaddr_in)); 
+          
           write(file_desc, buffer, strlen(buffer));
 
           memset(buffer, 0, sizeof(buffer));
           size = read(file_desc, buffer, sizeof(buffer)); 
           printf("Relay server status message %s\n", buffer); 
           //read from the data storage server whether it was saved or not. 
-
+          
 
 
           //send client if it was successfully written or not. 
@@ -146,8 +155,11 @@ int runMessageServer()
           //receive acknowledge from Client about the response
           memset(buffer, 0, sizeof(buffer));
           size = read(clientFd, buffer, sizeof(buffer)); 
+          close(file_desc); 
         }
+      close(file_desc); 
 
+      
 
       close(clientFd);
       
