@@ -26,9 +26,9 @@ typedef int bool;
 #define OUTPUTFILE "Data.txt"
 /* 
 #  Names: Robert Bowen, Michael Ban
-#  Description: This program is a messaging program between the relay server and the write server. The server will save the messages to a file. 
+#  Description: This program sends messages from the client to the data storage server. 
 #  Date: 11/5/22          	
-#  Specification: To run this program first run the server_write_program.c file and then run the client_program.c and server_relay_program.c files. The client should connect 
+#  Specification: To run this program first run the server_write_program.c file and then run the server_relay_program.c and then the client_program.c files. The client should connect 
 to the server relay and be prompted with whether it wants to write to the server or not. Then after it decides the relay server should send it to the write server.  
 */ 
 
@@ -46,21 +46,18 @@ int main(int argc, char const *argv[])
 
 int runMessageServer()
 {
+
   //prompt
   const char write_question[] = "Would you like to send a message (y/n)?"; 
 
 
   //set up Socket Structure for write server
   struct sockaddr_in write_server;
-
-  //char *server_ip = inet_ntoa(write_server.sin_addr);
-
-  //connect to the write server
-  //printf("Connecting to: %s:%d\n", server_ip, ntohs(write_server.sin_port));
- 
   int byte_count;
 
-
+  write_server.sin_family = AF_INET; 
+  write_server.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
+  write_server.sin_port = htons(SERVER_WRITE_PORT);
 
   //endpoint variables for this server
   struct sockaddr_in server;
@@ -80,10 +77,6 @@ int runMessageServer()
  
 
 
-  
-
-
-
 
 
   //accept clients
@@ -96,19 +89,20 @@ int runMessageServer()
     int clientFd = accept(serverFd, (struct sockaddr *)&client, &sock_len); //accept the clients connection
     int file_desc; 
     char *client_ip = inet_ntoa(client.sin_addr);
+    //
+
 
     printf("Accepted connection: %s:%d\n", client_ip, ntohs(client.sin_port)); //client ip 
 
 
         while (TRUE) //start write loop
         {
-           file_desc = socket(AF_INET, SOCK_STREAM, 0); //server pipeline
+          //create socket for connecting to data storage server
+          file_desc = socket(AF_INET, SOCK_STREAM, 0); 
 
-            write_server.sin_family = AF_INET;
-            write_server.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
-            write_server.sin_port = htons(SERVER_WRITE_PORT);
+
+
           memset(buffer, 0, sizeof(buffer));
-
           //prompt the user if they want to write
           strcpy(buffer, write_question); 
           write(clientFd, buffer, sizeof(buffer));
@@ -124,8 +118,7 @@ int runMessageServer()
             break; 
           }
           else{
-             while(connect(file_desc, (struct sockaddr *)&write_server, sizeof(struct sockaddr_in)) == -1){ printf("trying to connect \n"); }
-
+             connect(file_desc, (struct sockaddr *)&write_server, sizeof(struct sockaddr_in)); //connect to data storage server
           }
 
           //Acknowledge the clients response
@@ -135,7 +128,7 @@ int runMessageServer()
           //get the message from the client
           memset(buffer, 0, sizeof(buffer));
           size = read(clientFd, buffer, sizeof(buffer)); 
-          printf("Client message received: %s\n", buffer); 
+          printf("Client message received: %s", buffer); 
 
           //write the message to the data storage server
           
@@ -143,7 +136,7 @@ int runMessageServer()
 
           memset(buffer, 0, sizeof(buffer));
           size = read(file_desc, buffer, sizeof(buffer)); 
-          printf("Relay server status message %s\n", buffer); 
+          printf("Relay server status message %s\n \n", buffer); 
           //read from the data storage server whether it was saved or not. 
           
 
@@ -155,12 +148,11 @@ int runMessageServer()
           //receive acknowledge from Client about the response
           memset(buffer, 0, sizeof(buffer));
           size = read(clientFd, buffer, sizeof(buffer)); 
+
           close(file_desc); 
         }
+
       close(file_desc); 
-
-      
-
       close(clientFd);
       
     } 

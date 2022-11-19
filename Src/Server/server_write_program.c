@@ -27,7 +27,7 @@ typedef int bool;
 #  Names: Robert Bowen, Michael Ban
 #  Description: This program is a messaging program between the relay server and the write server. The server will save the messages to a file. 
 #  Date: 11/5/22          	
-#  Specification: To run this program first run the server_write_program.c file and then run the client_program.c and server_relay_program.c files. The client should connect 
+#  Specification: To run this program first run the server_write_program.c file and then run the server_relay_program.c and then the client_program.c files. The client should connect 
 to the server relay and be prompted with whether it wants to write to the server or not. Then after it decides the relay server should send it to the write server.  
 */ 
 
@@ -45,10 +45,6 @@ int main(int argc, char const *argv[])
 
 int runMessageServer()
 {
-  //prompt
-  const char write_question[] = "	Would you like to send a message (y/n)?"; 
-
-  //score
 
 
   //endpoint variables
@@ -62,7 +58,7 @@ int runMessageServer()
   server.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
   server.sin_port = htons(SERVER_PORT);
 
-  //listen on serverFd for client to connect
+  //listen on serverFd for relay server to connect
   bind(serverFd, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
   listen(serverFd, 100); 
  
@@ -72,20 +68,18 @@ int runMessageServer()
         while (TRUE) //start write loop
         {
 
-                  //connect to client 
+          //connect to relay server
           printf("Waiting for relay server connection...\n");
           socklen_t sock_len = sizeof(struct sockaddr_in);
           int clientFd = accept(serverFd, (struct sockaddr *)&client, &sock_len); //accept the clients connection
-          printf("%d \n", clientFd); 
           char *client_ip = inet_ntoa(client.sin_addr);
-
           printf("Accepted connection: %s:%d\n", client_ip, ntohs(client.sin_port)); //client ip 
 
 
           //get the message from the relay server
           memset(buffer, 0, sizeof(buffer));
           int size = read(clientFd, buffer, sizeof(buffer)); 
-          printf("Message forwarded from relay server %s", buffer); 
+          printf("Message forwarded from relay server %s \n", buffer); 
 
 
           //write the message to a ASCII file
