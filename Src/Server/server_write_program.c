@@ -23,6 +23,8 @@ typedef int bool;
 #define BUFFER_SIZE 1024
 #define ACKNOWLEDGE "Acknowledge" 
 #define OUTPUTFILE "Data.txt"
+
+
 /* 
 #  Names: Robert Bowen, Michael Ban
 #  Description: This program is a messaging program between the relay server and the write server. The server will save the messages to a file. 
@@ -43,6 +45,8 @@ int main(int argc, char const *argv[])
   return 0;
 }
 
+
+
 int runMessageServer()
 {
 
@@ -62,10 +66,8 @@ int runMessageServer()
   bind(serverFd, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
   listen(serverFd, 100); 
  
- 
-  //need to connect to relay server
 
-        while (TRUE) //start write loop
+        while (TRUE) 
         {
 
           //connect to relay server
@@ -110,23 +112,6 @@ int runMessageServer()
 
 
   //Helper Methods 
-
-  int checkClientResponseYN(char* response)
-  {
-
-    if(!strcmp(response, "n"))
-    {
-      return 0;
-    }
-    else if(!strcmp(response, "y"))
-    {
-      return 1; 
-
-    }
-
-  return -1; //something has gone wrong
-  
-}
 
 
 int writeMessageTofile(char* message, char* client_ip)

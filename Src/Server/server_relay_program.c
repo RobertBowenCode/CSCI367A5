@@ -23,7 +23,7 @@ typedef int bool;
 #define SERVER_WRITE_PORT 1235
 #define BUFFER_SIZE 1024
 #define ACKNOWLEDGE "Acknowledge" 
-#define OUTPUTFILE "Data.txt"
+
 /* 
 #  Names: Robert Bowen, Michael Ban
 #  Description: This program sends messages from the client to the data storage server. 
@@ -39,19 +39,20 @@ to the server relay and be prompted with whether it wants to write to the server
 int main(int argc, char const *argv[]) 
 {
 
-  runMessageServer(); //run the Game for the user
+  runRelayServer(); //run the Game for the user
 
   return 0;
 }
 
-int runMessageServer()
+int runRelayServer()
 {
 
   //prompt
   const char write_question[] = "Would you like to send a message (y/n)?"; 
 
 
-  //set up Socket Structure for write server
+
+  //set up Socket Structure for the data storage server
   struct sockaddr_in write_server;
   int byte_count;
 
@@ -59,7 +60,9 @@ int runMessageServer()
   write_server.sin_addr.s_addr = inet_addr(SERVER_IP_ADDRESS);
   write_server.sin_port = htons(SERVER_WRITE_PORT);
 
-  //endpoint variables for this server
+
+
+  //endpoint variables for the relay server
   struct sockaddr_in server;
   struct sockaddr_in client;
   char buffer[BUFFER_SIZE];
@@ -71,7 +74,9 @@ int runMessageServer()
   server.sin_port = htons(SERVER_PORT);
 
 
-  //listen on serverFd for client to connect
+
+
+  //listen on serverFd for client to connect to the relay server
   bind(serverFd, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
   listen(serverFd, 100); 
  
@@ -97,13 +102,16 @@ int runMessageServer()
 
         while (TRUE) //start write loop
         {
+
+
           //create socket for connecting to data storage server
           file_desc = socket(AF_INET, SOCK_STREAM, 0); 
 
 
 
-          memset(buffer, 0, sizeof(buffer));
+
           //prompt the user if they want to write
+          memset(buffer, 0, sizeof(buffer));
           strcpy(buffer, write_question); 
           write(clientFd, buffer, sizeof(buffer));
 
@@ -134,12 +142,12 @@ int runMessageServer()
           
           write(file_desc, buffer, strlen(buffer));
 
+          //read from the data storage server whether it was saved or not. 
+
           memset(buffer, 0, sizeof(buffer));
           size = read(file_desc, buffer, sizeof(buffer)); 
           printf("Relay server status message %s\n \n", buffer); 
-          //read from the data storage server whether it was saved or not. 
           
-
 
           //send client if it was successfully written or not. 
           write(clientFd, buffer, sizeof(buffer)); 
@@ -149,10 +157,9 @@ int runMessageServer()
           memset(buffer, 0, sizeof(buffer));
           size = read(clientFd, buffer, sizeof(buffer)); 
 
-          close(file_desc); 
+          close(file_desc); //end connection with Data storage server
         }
 
-      close(file_desc); 
       close(clientFd);
       
     } 
