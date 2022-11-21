@@ -11,7 +11,7 @@ typedef int bool;
 #define true 1
 
 #define SERVER_IP_ADDRESS "127.0.0.1"
-#define SERVER_PORT 8000
+#define SERVER_PORT 1234
 #define RECEIVE_BUFFER_SIZE 1024
 #define ACKNOWLEDGE "Acknowledge" 
 
